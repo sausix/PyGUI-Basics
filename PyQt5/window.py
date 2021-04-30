@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from os import PathLike
 from enum import Enum, auto
 from sys import argv
 from pathlib import Path
 from collections import OrderedDict
 from datetime import datetime, date
-from typing import Set, Type, Dict, Any
+from typing import Set, Type, Dict, Any, Union
 from PyQt5.QtCore import QSettings, QSize, Qt, QDateTime, pyqtBoundSignal, QByteArray
 from PyQt5.QtWidgets import QMainWindow, QDialog, QDateTimeEdit, QCheckBox, QLineEdit, QComboBox, QDockWidget, QWidget
 from PyQt5.uic import loadUi
@@ -22,7 +23,7 @@ else:
     _MAINPYDIR = Path.cwd()
 
 
-def _abspath(path, relativity: PathRelativity) -> Path:
+def _abspath(path: Union[str, bytes, PathLike], relativity: PathRelativity) -> Path:
     if not isinstance(path, Path):
         path = Path(path)
 
@@ -325,13 +326,14 @@ class SaveWindow(QWidget):
 
 
 class Window(QMainWindow, SaveWindow):
-    def __init__(self, uifile: str, relativity: PathRelativity = PathRelativity.MAINPY):
+    def __init__(self, uifile: Union[str, bytes, PathLike], relativity: PathRelativity = PathRelativity.MAINPY):
+        QMainWindow.__init__(self, flags=Qt.Window)
+        SaveWindow.__init__(self)
+
         realfile = _abspath(uifile, relativity)
         if not realfile.is_file():
             raise ValueError("ui file does not exists: " + str(realfile))
 
-        QMainWindow.__init__(self, flags=Qt.Window)
-        SaveWindow.__init__(self)
 
         loadUi(str(realfile), self)
 
@@ -350,13 +352,13 @@ class Window(QMainWindow, SaveWindow):
 
 
 class Dialog(QDialog, SaveWindow):
-    def __init__(self, uifile: str, relativity: PathRelativity = PathRelativity.MAINPY):
+    def __init__(self, uifile: Union[str, bytes, PathLike], relativity: PathRelativity = PathRelativity.MAINPY):
+        QDialog.__init__(self, flags=Qt.Dialog)
+        SaveWindow.__init__(self)
+
         realfile = _abspath(uifile, relativity)
         if not realfile.is_file():
             raise ValueError("ui file does not exists: " + str(realfile))
-
-        QDialog.__init__(self, flags=Qt.Dialog)
-        SaveWindow.__init__(self)
 
         loadUi(str(realfile), self)
 
